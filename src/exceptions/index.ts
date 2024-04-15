@@ -14,6 +14,13 @@ export class ForbiddenException extends Error {
   }
 }
 
+export class UnauthorizedException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnauthorizedException';
+  }
+}
+
 export function errorHandler(error: Error): {
   status: number;
   response: { message: string; successResponse: boolean; data?: any };
@@ -21,16 +28,19 @@ export function errorHandler(error: Error): {
   let status: number;
   let message: string;
   let responseData: any;
-  
+
   if (error instanceof BadRequestException) {
     status = HttpStatus.BAD_REQUEST;
     message = error.message;
   } else if (error instanceof ForbiddenException) {
     status = HttpStatus.FORBIDDEN;
     message = error.message;
+  } else if (error instanceof UnauthorizedException) {
+    status = HttpStatus.UNAUTHORIZED;
+    message = error.message;
   } else {
     status = HttpStatus.INTERNAL_SERVER_ERROR;
-    message = error.message || 'Internal Server Error';
+    message = 'Internal Server Error';
   }
 
   return {

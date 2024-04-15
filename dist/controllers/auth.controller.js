@@ -18,6 +18,10 @@ class AuthController {
             const { status, response } = yield this.authService.signup(req.body);
             return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
         });
+        this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { status, response } = yield this.authService.login(req.body);
+            return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
+        });
         this.authService = new auth_service_1.AuthService();
     }
 }

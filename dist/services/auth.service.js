@@ -19,6 +19,7 @@ const user_repository_1 = require("../database/repositories/user.repository");
 const dotenv_1 = __importDefault(require("dotenv"));
 const axios_1 = __importDefault(require("axios"));
 const exceptions_1 = require("../exceptions");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
 class AuthService {
     constructor() {
@@ -47,6 +48,37 @@ class AuthService {
                         message: 'User Created Successfully',
                         successResponse: true,
                         data: { email },
+                    },
+                };
+            }
+            catch (error) {
+                return (0, exceptions_1.errorHandler)(error);
+            }
+        });
+    }
+    login(body) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const jwtSecret = process.env.JWT_SECRET;
+                const jwtExpiry = process.env.JWT_EXPIRY;
+                const { email, password } = body;
+                const user = yield this.userRepository.findByEmail(email);
+                if (!user) {
+                    throw new exceptions_1.UnauthorizedException('Invalid Credentials');
+                }
+                // Compare hashed password with provided password
+                const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
+                if (!isPasswordValid) {
+                    throw new exceptions_1.UnauthorizedException('Invalid Credentials');
+                }
+                // Generate JWT token
+                const token = jsonwebtoken_1.default.sign({ email: user.email, id: user.id }, `${jwtSecret}`, { expiresIn: jwtExpiry });
+                return {
+                    status: utils_1.HttpStatus.OK,
+                    response: {
+                        message: 'Login Successfully',
+                        successResponse: true,
+                        data: { token },
                     },
                 };
             }

@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import { PublicController } from '../controllers/public.controller';
-import { signupValidationRules } from '../middlewares/auth.middleware';
+import { loginValidationRules, signupValidationRules } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate';
 import { AuthController } from '../controllers/auth.controller';
 
@@ -16,5 +16,6 @@ export class Routes {
 
     // Auth
     app.post(this.baseUrl + 'auth/signup', signupValidationRules(), validate, this.authController.signup);
+    app.post(this.baseUrl + 'auth/login', loginValidationRules(), validate, this.authController.login);
   }
 }

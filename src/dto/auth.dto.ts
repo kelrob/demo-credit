@@ -4,3 +4,8 @@ export interface SignupRequestDto {
   first_name?: string;
   last_name?: string;
 }
+
+export interface LoginRequestDto {
+  email: string;
+  password: string;
+}

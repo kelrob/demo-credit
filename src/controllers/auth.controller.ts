@@ -14,4 +14,10 @@ export class AuthController {
 
     return res.status(status).json(ApiResponseFormatter(response));
   };
+
+  public login = async (req: Request, res: Response) => {
+    const { status, response } = await this.authService.login(req.body);
+
+    return res.status(status).json(ApiResponseFormatter(response));
+  };
 }

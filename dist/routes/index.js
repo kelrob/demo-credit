@@ -17,6 +17,7 @@ class Routes {
         app.get(this.baseUrl + 'health', this.publicController.healthCheck);
         // Auth
         app.post(this.baseUrl + 'auth/signup', (0, auth_middleware_1.signupValidationRules)(), validate_1.validate, this.authController.signup);
+        app.post(this.baseUrl + 'auth/login', (0, auth_middleware_1.loginValidationRules)(), validate_1.validate, this.authController.login);
     }
 }
 exports.Routes = Routes;

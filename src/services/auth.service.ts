@@ -1,10 +1,11 @@
-import { SignupRequestDto } from '../dto/auth.dto';
+import { LoginRequestDto, SignupRequestDto } from '../dto/auth.dto';
 import { HttpStatus } from '../utils';
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../database/repositories/user.repository';
 import dotenv from 'dotenv';
 import axios from 'axios';
-import { BadRequestException, errorHandler, ForbiddenException } from '../exceptions';
+import { BadRequestException, errorHandler, ForbiddenException, UnauthorizedException } from '../exceptions';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -42,6 +43,40 @@ export class AuthService {
           message: 'User Created Successfully',
           successResponse: true,
           data: { email },
+        },
+      };
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  }
+
+  async login(body: LoginRequestDto) {
+    try {
+      const jwtSecret = process.env.JWT_SECRET;
+      const jwtExpiry = process.env.JWT_EXPIRY;
+
+      const { email, password } = body;
+      const user = await this.userRepository.findByEmail(email);
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid Credentials');
+      }
+      // Compare hashed password with provided password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid Credentials');
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ email: user.email, id: user.id }, `${jwtSecret}`, { expiresIn: jwtExpiry });
+
+      return {
+        status: HttpStatus.OK,
+        response: {
+          message: 'Login Successfully',
+          successResponse: true,
+          data: { token },
         },
       };
     } catch (error: any) {
