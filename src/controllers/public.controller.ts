@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ApiResponseFormatter, HttpStatus } from '../utils';
 
 export class PublicController {
   index(req: Request, res: Response) {
@@ -6,9 +7,11 @@ export class PublicController {
   }
 
   healthCheck(req: Request, res: Response) {
-    return res.status(200).json({
-      message: 'DEMO CREDIT API is Live and Running',
-      data: null,
-    });
+    res.status(HttpStatus.OK).json(
+      ApiResponseFormatter({
+        message: 'DEMO CREDIT API is Live and Running',
+        data: null,
+      }),
+    );
   }
 }
