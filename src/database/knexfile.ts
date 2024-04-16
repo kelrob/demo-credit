@@ -9,7 +9,7 @@ const environment: string = process.env.NODE_ENV || 'development';
 // Define the configurations for each environment
 const configurations: { [key: string]: Knex.Config } = {
   development: {
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
       host: process.env.DB_HOST,
       database: process.env.DB_NAME,
