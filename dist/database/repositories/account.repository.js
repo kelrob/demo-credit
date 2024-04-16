@@ -18,14 +18,26 @@ class AccountRepository {
     constructor() {
         this.table = 'accounts';
     }
-    findByUserId(userId) {
+    findByUserId(userId, trx) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (trx) {
+                return trx(this.table).where({ user_id: userId }).first();
+            }
             return (0, database_1.default)(this.table).where({ user_id: userId }).first();
         });
     }
     createAccount(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             return (0, database_1.default)(this.table).insert({ user_id: userId });
+        });
+    }
+    fundAccount(data, trx) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return trx(this.table)
+                .where('id', data.id)
+                .andWhere('user_id', data.userId)
+                .increment('balance', data.amount)
+                .update('version', data.version + 1);
         });
     }
 }

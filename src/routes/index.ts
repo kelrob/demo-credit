@@ -4,6 +4,7 @@ import { loginValidationRules, signupValidationRules, validateToken } from '../m
 import { validate } from '../middlewares/validate';
 import { AuthController } from '../controllers/auth.controller';
 import { AccountController } from '../controllers/account.controller';
+import { fundAccountValidationRules } from '../middlewares/account.middleware';
 
 export class Routes {
   public publicController: PublicController = new PublicController();
@@ -22,5 +23,11 @@ export class Routes {
 
     // Account
     app.post(this.baseUrl + 'account', validateToken, this.accountController.createAccount);
+    app.post(
+      this.baseUrl + 'account/fund',
+      [validateToken, ...fundAccountValidationRules()],
+      validate,
+      this.accountController.fundAccount,
+    );
   }
 }

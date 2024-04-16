@@ -14,4 +14,11 @@ export class AccountController {
 
     return res.status(status).json(ApiResponseFormatter(response));
   };
+
+  public fundAccount = async (req: Request, res: Response) => {
+    const body = { userId: req.user.id, ...req.body };
+    const { status, response } = await this.accountService.fundAccount(body);
+
+    return res.status(status).json(ApiResponseFormatter(response));
+  };
 }

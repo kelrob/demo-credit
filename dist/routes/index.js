@@ -6,6 +6,7 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const validate_1 = require("../middlewares/validate");
 const auth_controller_1 = require("../controllers/auth.controller");
 const account_controller_1 = require("../controllers/account.controller");
+const account_middleware_1 = require("../middlewares/account.middleware");
 class Routes {
     constructor() {
         this.publicController = new public_controller_1.PublicController();
@@ -22,6 +23,7 @@ class Routes {
         app.post(this.baseUrl + 'auth/login', (0, auth_middleware_1.loginValidationRules)(), validate_1.validate, this.authController.login);
         // Account
         app.post(this.baseUrl + 'account', auth_middleware_1.validateToken, this.accountController.createAccount);
+        app.post(this.baseUrl + 'account/fund', [auth_middleware_1.validateToken, ...(0, account_middleware_1.fundAccountValidationRules)()], validate_1.validate, this.accountController.fundAccount);
     }
 }
 exports.Routes = Routes;
