@@ -21,6 +21,13 @@ export class UnauthorizedException extends Error {
   }
 }
 
+export class PaymentRequiredException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PaymentRequiredException';
+  }
+}
+
 export class ConflictException extends Error {
   data: any;
 
@@ -52,6 +59,9 @@ export function errorHandler(error: Error): {
     status = HttpStatus.CONFLICT;
     message = error.message;
     responseData = error.data; // Changed 'data' to 'responseData'
+  } else if (error instanceof PaymentRequiredException) {
+    status = HttpStatus.PAYMENT_REQUIRED;
+    message = error.message;
   } else {
     status = HttpStatus.INTERNAL_SERVER_ERROR;
     message = 'Internal Server Error';

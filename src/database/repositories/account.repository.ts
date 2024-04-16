@@ -23,4 +23,12 @@ export class AccountRepository {
       .increment('balance', data.amount)
       .update('version', data.version + 1);
   }
+
+  async debitAccount(data: ChangeAccountBalanceRequestDto, trx: any) {
+    return trx(this.table)
+      .where('id', data.id)
+      .andWhere('user_id', data.userId)
+      .decrement('balance', data.amount)
+      .update('version', data.version + 1);
+  }
 }

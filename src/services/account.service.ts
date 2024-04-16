@@ -1,7 +1,7 @@
 import { AccountRepository } from '../database/repositories/account.repository';
 import { HttpStatus } from '../utils';
-import { BadRequestException, ConflictException, errorHandler } from '../exceptions';
-import { ChangeAccountBalanceRequestDto } from '../dto/account.dto';
+import { BadRequestException, ConflictException, errorHandler, PaymentRequiredException } from '../exceptions';
+import { AccountResponseDto, ChangeAccountBalanceRequestDto, TransferRequestDto } from '../dto/account.dto';
 import knex from '../database/database';
 import { TransactionRepository } from '../database/repositories/transaction.repository';
 import { TransactionType } from '../dto/transaction.dto';
@@ -112,6 +112,119 @@ export class AccountService {
       }
 
       throw new ConflictException('Failed to fund account after maximum retries.', { versionToUse });
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  }
+
+  async transferFundsToUser(body: TransferRequestDto) {
+    const MAX_RETRIES = 5;
+    const { senderId, receiverId, amount, senderVersion, receiverVersion } = body;
+    const transferAmount = amount * 100;
+    let currentSenderVersion = senderVersion;
+    let currentReceiverVersion = receiverVersion;
+
+    try {
+      let retries = 0;
+      let success = false;
+      let senderAccount: AccountResponseDto;
+      let receiverAccount: AccountResponseDto;
+      let trx;
+
+      while (!success && retries < MAX_RETRIES) {
+        try {
+          trx = await knex.transaction();
+          senderAccount = await this.accountRepository.findByUserId(senderId, trx);
+          receiverAccount = await this.accountRepository.findByUserId(receiverId, trx);
+
+          if (!senderAccount || !receiverAccount) {
+            throw new BadRequestException('Sender or Receiver Account not found');
+          }
+
+          if (senderAccount.user_id === receiverAccount.user_id) {
+            throw new BadRequestException('You can not transfer funds to yourself');
+          }
+
+          if (senderAccount.balance < transferAmount) {
+            throw new PaymentRequiredException('Insufficient Balance');
+          }
+
+          if (senderAccount.version !== currentSenderVersion) {
+            throw new ConflictException('Conflict: Sender account version mismatch');
+          }
+
+          if (receiverAccount.version !== currentReceiverVersion) {
+            throw new ConflictException('Conflict: Receiver account version mismatch');
+          }
+
+          await this.accountRepository.debitAccount(
+            {
+              amount: transferAmount,
+              id: senderAccount.id,
+              userId: senderId,
+              version: senderVersion,
+            },
+            trx,
+          );
+          await this.accountRepository.fundAccount(
+            {
+              amount: transferAmount,
+              id: receiverAccount.id,
+              userId: receiverId,
+              version: receiverVersion,
+            },
+            trx,
+          );
+
+          await this.transactionRepository.newTransactionHistory(
+            {
+              amount: transferAmount,
+              type: TransactionType.TRANSFER,
+              fromAccountId: senderAccount.id,
+              toAccountId: receiverAccount.id,
+            },
+            trx,
+          );
+
+          await trx.commit();
+          success = true;
+        } catch (error: any) {
+          if (trx) {
+            await trx.rollback();
+          }
+
+          if (error instanceof ConflictException) {
+            retries++;
+            if (error.message === 'Conflict: Sender account version mismatch') {
+              currentSenderVersion++;
+            } else if (error.message === 'Conflict: Receiver account version mismatch') {
+              currentReceiverVersion++;
+            }
+          } else {
+            retries = MAX_RETRIES;
+
+            return errorHandler(error);
+          }
+        }
+      }
+
+      if (success) {
+        return {
+          status: HttpStatus.OK,
+          response: {
+            message: 'Transfer completed successfully',
+            successResponse: true,
+          },
+        };
+      } else {
+        const latestSenderAccount: AccountResponseDto = await this.accountRepository.findByUserId(senderId);
+        const latestReceiverAccount: AccountResponseDto = await this.accountRepository.findByUserId(receiverId);
+
+        throw new ConflictException('Failed to fund account after maximum retries.', {
+          senderVersion: latestSenderAccount.version,
+          receiverVersion: latestReceiverAccount.version,
+        });
+      }
     } catch (error: any) {
       return errorHandler(error);
     }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandler = exports.ConflictException = exports.UnauthorizedException = exports.ForbiddenException = exports.BadRequestException = void 0;
+exports.errorHandler = exports.ConflictException = exports.PaymentRequiredException = exports.UnauthorizedException = exports.ForbiddenException = exports.BadRequestException = void 0;
 const utils_1 = require("../utils");
 class BadRequestException extends Error {
     constructor(message) {
@@ -23,6 +23,13 @@ class UnauthorizedException extends Error {
     }
 }
 exports.UnauthorizedException = UnauthorizedException;
+class PaymentRequiredException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'PaymentRequiredException';
+    }
+}
+exports.PaymentRequiredException = PaymentRequiredException;
 class ConflictException extends Error {
     constructor(message, data) {
         super(message);
@@ -51,6 +58,10 @@ function errorHandler(error) {
         status = utils_1.HttpStatus.CONFLICT;
         message = error.message;
         responseData = error.data; // Changed 'data' to 'responseData'
+    }
+    else if (error instanceof PaymentRequiredException) {
+        status = utils_1.HttpStatus.PAYMENT_REQUIRED;
+        message = error.message;
     }
     else {
         status = utils_1.HttpStatus.INTERNAL_SERVER_ERROR;

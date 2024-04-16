@@ -40,5 +40,14 @@ class AccountRepository {
                 .update('version', data.version + 1);
         });
     }
+    debitAccount(data, trx) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return trx(this.table)
+                .where('id', data.id)
+                .andWhere('user_id', data.userId)
+                .decrement('balance', data.amount)
+                .update('version', data.version + 1);
+        });
+    }
 }
 exports.AccountRepository = AccountRepository;

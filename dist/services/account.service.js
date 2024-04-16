@@ -116,5 +116,101 @@ class AccountService {
             }
         });
     }
+    transferFundsToUser(body) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const MAX_RETRIES = 5;
+            const { senderId, receiverId, amount, senderVersion, receiverVersion } = body;
+            const transferAmount = amount * 100;
+            let currentSenderVersion = senderVersion;
+            let currentReceiverVersion = receiverVersion;
+            try {
+                let retries = 0;
+                let success = false;
+                let senderAccount;
+                let receiverAccount;
+                let trx;
+                while (!success && retries < MAX_RETRIES) {
+                    try {
+                        trx = yield database_1.default.transaction();
+                        senderAccount = yield this.accountRepository.findByUserId(senderId, trx);
+                        receiverAccount = yield this.accountRepository.findByUserId(receiverId, trx);
+                        if (!senderAccount || !receiverAccount) {
+                            throw new exceptions_1.BadRequestException('Sender or Receiver Account not found');
+                        }
+                        if (senderAccount.user_id === receiverAccount.user_id) {
+                            throw new exceptions_1.BadRequestException('You can not transfer funds to yourself');
+                        }
+                        if (senderAccount.balance < transferAmount) {
+                            throw new exceptions_1.PaymentRequiredException('Insufficient Balance');
+                        }
+                        if (senderAccount.version !== currentSenderVersion) {
+                            throw new exceptions_1.ConflictException('Conflict: Sender account version mismatch');
+                        }
+                        if (receiverAccount.version !== currentReceiverVersion) {
+                            throw new exceptions_1.ConflictException('Conflict: Receiver account version mismatch');
+                        }
+                        yield this.accountRepository.debitAccount({
+                            amount: transferAmount,
+                            id: senderAccount.id,
+                            userId: senderId,
+                            version: senderVersion,
+                        }, trx);
+                        yield this.accountRepository.fundAccount({
+                            amount: transferAmount,
+                            id: receiverAccount.id,
+                            userId: receiverId,
+                            version: receiverVersion,
+                        }, trx);
+                        yield this.transactionRepository.newTransactionHistory({
+                            amount: transferAmount,
+                            type: transaction_dto_1.TransactionType.TRANSFER,
+                            fromAccountId: senderAccount.id,
+                            toAccountId: receiverAccount.id,
+                        }, trx);
+                        yield trx.commit();
+                        success = true;
+                    }
+                    catch (error) {
+                        if (trx) {
+                            yield trx.rollback();
+                        }
+                        if (error instanceof exceptions_1.ConflictException) {
+                            retries++;
+                            if (error.message === 'Conflict: Sender account version mismatch') {
+                                currentSenderVersion++;
+                            }
+                            else if (error.message === 'Conflict: Receiver account version mismatch') {
+                                currentReceiverVersion++;
+                            }
+                        }
+                        else {
+                            retries = MAX_RETRIES;
+                            return (0, exceptions_1.errorHandler)(error);
+                        }
+                    }
+                }
+                if (success) {
+                    return {
+                        status: utils_1.HttpStatus.OK,
+                        response: {
+                            message: 'Transfer completed successfully',
+                            successResponse: true,
+                        },
+                    };
+                }
+                else {
+                    const latestSenderAccount = yield this.accountRepository.findByUserId(senderId);
+                    const latestReceiverAccount = yield this.accountRepository.findByUserId(receiverId);
+                    throw new exceptions_1.ConflictException('Failed to fund account after maximum retries.', {
+                        senderVersion: latestSenderAccount.version,
+                        receiverVersion: latestReceiverAccount.version,
+                    });
+                }
+            }
+            catch (error) {
+                return (0, exceptions_1.errorHandler)(error);
+            }
+        });
+    }
 }
 exports.AccountService = AccountService;

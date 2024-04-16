@@ -23,6 +23,11 @@ class AccountController {
             const { status, response } = yield this.accountService.fundAccount(body);
             return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
         });
+        this.transferFundsToUser = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const body = Object.assign({ senderId: req.user.id }, req.body);
+            const { status, response } = yield this.accountService.transferFundsToUser(body);
+            return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
+        });
         this.accountService = new account_service_1.AccountService();
     }
 }

@@ -21,4 +21,11 @@ export class AccountController {
 
     return res.status(status).json(ApiResponseFormatter(response));
   };
+
+  public transferFundsToUser = async (req: Request, res: Response) => {
+    const body = { senderId: req.user.id, ...req.body };
+    const { status, response } = await this.accountService.transferFundsToUser(body);
+
+    return res.status(status).json(ApiResponseFormatter(response));
+  };
 }
