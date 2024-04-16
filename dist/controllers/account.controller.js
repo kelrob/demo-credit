@@ -28,6 +28,10 @@ class AccountController {
             const { status, response } = yield this.accountService.transferFundsToUser(body);
             return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
         });
+        this.withdrawFundsFromAccount = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { status, response } = yield this.accountService.withdrawFundsFromAccount(req.user.id, req.body.amount, req.body.version);
+            return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
+        });
         this.accountService = new account_service_1.AccountService();
     }
 }

@@ -28,4 +28,14 @@ export class AccountController {
 
     return res.status(status).json(ApiResponseFormatter(response));
   };
+
+  public withdrawFundsFromAccount = async (req: Request, res: Response) => {
+    const { status, response } = await this.accountService.withdrawFundsFromAccount(
+      req.user.id,
+      req.body.amount,
+      req.body.version,
+    );
+
+    return res.status(status).json(ApiResponseFormatter(response));
+  };
 }

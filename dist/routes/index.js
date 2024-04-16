@@ -25,6 +25,12 @@ class Routes {
         app.post(this.baseUrl + 'account', auth_middleware_1.validateToken, this.accountController.createAccount);
         app.post(this.baseUrl + 'account/fund', [auth_middleware_1.validateToken, ...(0, account_middleware_1.fundAccountValidationRules)()], validate_1.validate, this.accountController.fundAccount);
         app.post(this.baseUrl + 'account/funds/transfer', [auth_middleware_1.validateToken, ...(0, account_middleware_1.transferFundsToAccountValidationRules)()], validate_1.validate, this.accountController.transferFundsToUser);
+        app.post(this.baseUrl + 'account/funds/withdraw', [
+            auth_middleware_1.validateToken,
+            ...(0, account_middleware_1.withdrawFromAccountValidationRules)(),
+            validate_1.validate,
+            this.accountController.withdrawFundsFromAccount,
+        ]);
     }
 }
 exports.Routes = Routes;

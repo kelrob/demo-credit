@@ -229,4 +229,63 @@ export class AccountService {
       return errorHandler(error);
     }
   }
+
+  async withdrawFundsFromAccount(userId: number, amount: number, version: number) {
+    const amountToWithdraw = amount * 100;
+
+    const trx = await knex.transaction();
+
+    try {
+      const userAccount: AccountResponseDto = await this.accountRepository.findByUserId(userId, trx);
+      if (!userAccount) {
+        throw new BadRequestException('User Account not found. Confirm if this user has already created an account');
+      }
+
+      // Check if sender has sufficient balance
+      if (userAccount.balance < amountToWithdraw) {
+        throw new PaymentRequiredException('Insufficient Balance');
+      }
+
+      // Check account version for consistency
+      if (userAccount.version !== version) {
+        throw new ConflictException('Version mismatch', { versionToUse: userAccount.version });
+      }
+
+      await this.accountRepository.debitAccount(
+        {
+          amount: amountToWithdraw,
+          userId,
+          version,
+          id: userAccount.id,
+        },
+        trx,
+      );
+
+      // Store transaction history for
+      await this.transactionRepository.newTransactionHistory(
+        {
+          amount: amountToWithdraw,
+          type: TransactionType.WITHDRAWAL,
+          fromAccountId: userAccount.id,
+        },
+        trx,
+      );
+
+      await trx.commit();
+
+      return {
+        status: HttpStatus.OK,
+        response: {
+          message: 'Withdrawal Processed successfully',
+          successResponse: true,
+        },
+      };
+    } catch (error: any) {
+      if (trx) {
+        await trx.rollback();
+      }
+
+      return errorHandler(error);
+    }
+  }
 }

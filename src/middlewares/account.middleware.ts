@@ -35,3 +35,14 @@ export const transferFundsToAccountValidationRules = () => {
       .withMessage('receiverVersion can only be number'),
   ];
 };
+
+export const withdrawFromAccountValidationRules = () => {
+  return [
+    body('amount')
+      .notEmpty()
+      .withMessage('amount is required')
+      .isInt({ min: 100 })
+      .withMessage('amount can only be number greater than or equal to 100'),
+    body('version').notEmpty().withMessage('version is required').isInt().withMessage('version can only be number'),
+  ];
+};

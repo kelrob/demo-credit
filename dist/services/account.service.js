@@ -212,5 +212,51 @@ class AccountService {
             }
         });
     }
+    withdrawFundsFromAccount(userId, amount, version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const amountToWithdraw = amount * 100;
+            const trx = yield database_1.default.transaction();
+            try {
+                const userAccount = yield this.accountRepository.findByUserId(userId, trx);
+                if (!userAccount) {
+                    throw new exceptions_1.BadRequestException('User Account not found. Confirm if this user has already created an account');
+                }
+                // Check if sender has sufficient balance
+                if (userAccount.balance < amountToWithdraw) {
+                    throw new exceptions_1.PaymentRequiredException('Insufficient Balance');
+                }
+                // Check account version for consistency
+                if (userAccount.version !== version) {
+                    throw new exceptions_1.ConflictException('Version mismatch', { versionToUse: userAccount.version });
+                }
+                yield this.accountRepository.debitAccount({
+                    amount: amountToWithdraw,
+                    userId,
+                    version,
+                    id: userAccount.id,
+                }, trx);
+                // Store transaction history for
+                yield this.transactionRepository.newTransactionHistory({
+                    amount: amountToWithdraw,
+                    type: transaction_dto_1.TransactionType.WITHDRAWAL,
+                    fromAccountId: userAccount.id,
+                }, trx);
+                yield trx.commit();
+                return {
+                    status: utils_1.HttpStatus.OK,
+                    response: {
+                        message: 'Withdrawal Processed successfully',
+                        successResponse: true,
+                    },
+                };
+            }
+            catch (error) {
+                if (trx) {
+                    yield trx.rollback();
+                }
+                return (0, exceptions_1.errorHandler)(error);
+            }
+        });
+    }
 }
 exports.AccountService = AccountService;
