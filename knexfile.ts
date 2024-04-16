@@ -5,15 +5,16 @@ dotenv.config();
 
 const environments: string[] = ['development', 'staging', 'production'];
 
-const connection: Knex.ConnectionConfig = {
+const connection = {
   host: process.env.DB_HOST as string,
   database: process.env.DB_NAME as string,
   user: process.env.DB_USER as string,
   password: process.env.DB_PASSWORD as string,
+  port: process.env.DB_PORT,
 };
 
 const commonConfig: Knex.Config = {
-  client: 'mysql',
+  client: 'mysql2',
   connection,
   migrations: {
     directory: './src/database/migrations',
