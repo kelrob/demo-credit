@@ -1,40 +1,43 @@
 import { HttpStatus } from '../utils';
 
-export class BadRequestException extends Error {
-  constructor(message: string) {
+export class HttpException extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public data?: any,
+  ) {
     super(message);
-    this.name = 'BadRequestException';
+    this.name = this.constructor.name;
   }
 }
 
-export class ForbiddenException extends Error {
+export class BadRequestException extends HttpException {
   constructor(message: string) {
-    super(message);
-    this.name = 'ForbiddenException';
+    super(message, HttpStatus.BAD_REQUEST);
   }
 }
 
-export class UnauthorizedException extends Error {
+export class ForbiddenException extends HttpException {
   constructor(message: string) {
-    super(message);
-    this.name = 'UnauthorizedException';
+    super(message, HttpStatus.FORBIDDEN);
   }
 }
 
-export class PaymentRequiredException extends Error {
+export class UnauthorizedException extends HttpException {
   constructor(message: string) {
-    super(message);
-    this.name = 'PaymentRequiredException';
+    super(message, HttpStatus.UNAUTHORIZED);
   }
 }
 
-export class ConflictException extends Error {
-  data: any;
-
+export class ConflictException extends HttpException {
   constructor(message: string, data?: any) {
-    super(message);
-    this.data = data;
-    this.name = 'ConflictException';
+    super(message, HttpStatus.CONFLICT, data);
+  }
+}
+
+export class PaymentRequiredException extends HttpException {
+  constructor(message: string) {
+    super(message, HttpStatus.PAYMENT_REQUIRED);
   }
 }
 
@@ -44,23 +47,9 @@ export function errorHandler(error: Error): {
 } {
   let status: number;
   let message: string;
-  let responseData: any;
 
-  if (error instanceof BadRequestException) {
-    status = HttpStatus.BAD_REQUEST;
-    message = error.message;
-  } else if (error instanceof ForbiddenException) {
-    status = HttpStatus.FORBIDDEN;
-    message = error.message;
-  } else if (error instanceof UnauthorizedException) {
-    status = HttpStatus.UNAUTHORIZED;
-    message = error.message;
-  } else if (error instanceof ConflictException) {
-    status = HttpStatus.CONFLICT;
-    message = error.message;
-    responseData = error.data; // Changed 'data' to 'responseData'
-  } else if (error instanceof PaymentRequiredException) {
-    status = HttpStatus.PAYMENT_REQUIRED;
+  if (error instanceof HttpException) {
+    status = error.status;
     message = error.message;
   } else {
     status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -72,7 +61,7 @@ export function errorHandler(error: Error): {
     response: {
       message,
       successResponse: false,
-      data: responseData,
+      data: error instanceof ConflictException ? error.data : undefined,
     },
   };
 }

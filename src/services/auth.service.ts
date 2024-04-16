@@ -46,8 +46,6 @@ export class AuthService {
         },
       };
     } catch (error: any) {
-      console.log({ error });
-
       return errorHandler(error);
     }
   }

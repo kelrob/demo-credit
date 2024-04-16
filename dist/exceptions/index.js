@@ -1,66 +1,51 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandler = exports.ConflictException = exports.PaymentRequiredException = exports.UnauthorizedException = exports.ForbiddenException = exports.BadRequestException = void 0;
+exports.errorHandler = exports.PaymentRequiredException = exports.ConflictException = exports.UnauthorizedException = exports.ForbiddenException = exports.BadRequestException = exports.HttpException = void 0;
 const utils_1 = require("../utils");
-class BadRequestException extends Error {
-    constructor(message) {
+class HttpException extends Error {
+    constructor(message, status, data) {
         super(message);
-        this.name = 'BadRequestException';
+        this.status = status;
+        this.data = data;
+        this.name = this.constructor.name;
+    }
+}
+exports.HttpException = HttpException;
+class BadRequestException extends HttpException {
+    constructor(message) {
+        super(message, utils_1.HttpStatus.BAD_REQUEST);
     }
 }
 exports.BadRequestException = BadRequestException;
-class ForbiddenException extends Error {
+class ForbiddenException extends HttpException {
     constructor(message) {
-        super(message);
-        this.name = 'ForbiddenException';
+        super(message, utils_1.HttpStatus.FORBIDDEN);
     }
 }
 exports.ForbiddenException = ForbiddenException;
-class UnauthorizedException extends Error {
+class UnauthorizedException extends HttpException {
     constructor(message) {
-        super(message);
-        this.name = 'UnauthorizedException';
+        super(message, utils_1.HttpStatus.UNAUTHORIZED);
     }
 }
 exports.UnauthorizedException = UnauthorizedException;
-class PaymentRequiredException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'PaymentRequiredException';
-    }
-}
-exports.PaymentRequiredException = PaymentRequiredException;
-class ConflictException extends Error {
+class ConflictException extends HttpException {
     constructor(message, data) {
-        super(message);
-        this.data = data;
-        this.name = 'ConflictException';
+        super(message, utils_1.HttpStatus.CONFLICT, data);
     }
 }
 exports.ConflictException = ConflictException;
+class PaymentRequiredException extends HttpException {
+    constructor(message) {
+        super(message, utils_1.HttpStatus.PAYMENT_REQUIRED);
+    }
+}
+exports.PaymentRequiredException = PaymentRequiredException;
 function errorHandler(error) {
     let status;
     let message;
-    let responseData;
-    if (error instanceof BadRequestException) {
-        status = utils_1.HttpStatus.BAD_REQUEST;
-        message = error.message;
-    }
-    else if (error instanceof ForbiddenException) {
-        status = utils_1.HttpStatus.FORBIDDEN;
-        message = error.message;
-    }
-    else if (error instanceof UnauthorizedException) {
-        status = utils_1.HttpStatus.UNAUTHORIZED;
-        message = error.message;
-    }
-    else if (error instanceof ConflictException) {
-        status = utils_1.HttpStatus.CONFLICT;
-        message = error.message;
-        responseData = error.data; // Changed 'data' to 'responseData'
-    }
-    else if (error instanceof PaymentRequiredException) {
-        status = utils_1.HttpStatus.PAYMENT_REQUIRED;
+    if (error instanceof HttpException) {
+        status = error.status;
         message = error.message;
     }
     else {
@@ -72,7 +57,7 @@ function errorHandler(error) {
         response: {
             message,
             successResponse: false,
-            data: responseData,
+            data: error instanceof ConflictException ? error.data : undefined,
         },
     };
 }
