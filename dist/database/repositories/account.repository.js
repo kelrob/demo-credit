@@ -12,19 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserRepository = void 0;
+exports.AccountRepository = void 0;
 const database_1 = __importDefault(require("../database"));
-const table = 'users';
-class UserRepository {
-    findByEmail(email) {
+class AccountRepository {
+    constructor() {
+        this.table = 'accounts';
+    }
+    findByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, database_1.default)(table).where({ email }).first();
+            return (0, database_1.default)(this.table).where({ user_id: userId }).first();
         });
     }
-    createUser(body) {
+    createAccount(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, database_1.default)(table).insert(body);
+            return (0, database_1.default)(this.table).insert({ user_id: userId });
         });
     }
 }
-exports.UserRepository = UserRepository;
+exports.AccountRepository = AccountRepository;

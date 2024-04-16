@@ -8,23 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserRepository = void 0;
-const database_1 = __importDefault(require("../database"));
-const table = 'users';
-class UserRepository {
-    findByEmail(email) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return (0, database_1.default)(table).where({ email }).first();
+exports.AccountController = void 0;
+const utils_1 = require("../utils");
+const account_service_1 = require("../services/account.service");
+class AccountController {
+    constructor() {
+        this.createAccount = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { status, response } = yield this.accountService.createAccount(req.user.id);
+            return res.status(status).json((0, utils_1.ApiResponseFormatter)(response));
         });
-    }
-    createUser(body) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return (0, database_1.default)(table).insert(body);
-        });
+        this.accountService = new account_service_1.AccountService();
     }
 }
-exports.UserRepository = UserRepository;
+exports.AccountController = AccountController;

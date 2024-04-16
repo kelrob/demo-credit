@@ -21,6 +21,16 @@ export class UnauthorizedException extends Error {
   }
 }
 
+export class ConflictException extends Error {
+  data: any;
+
+  constructor(message: string, data?: any) {
+    super(message);
+    this.data = data;
+    this.name = 'ConflictException';
+  }
+}
+
 export function errorHandler(error: Error): {
   status: number;
   response: { message: string; successResponse: boolean; data?: any };
@@ -38,6 +48,10 @@ export function errorHandler(error: Error): {
   } else if (error instanceof UnauthorizedException) {
     status = HttpStatus.UNAUTHORIZED;
     message = error.message;
+  } else if (error instanceof ConflictException) {
+    status = HttpStatus.CONFLICT;
+    message = error.message;
+    responseData = error.data; // Changed 'data' to 'responseData'
   } else {
     status = HttpStatus.INTERNAL_SERVER_ERROR;
     message = 'Internal Server Error';
