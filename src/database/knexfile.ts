@@ -5,6 +5,7 @@ dotenv.config();
 
 // Determine the current environment
 const environment: string = process.env.NODE_ENV || 'development';
+const port: number = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
 
 // Define the configurations for each environment
 const configurations: { [key: string]: Knex.Config } = {
@@ -15,6 +16,7 @@ const configurations: { [key: string]: Knex.Config } = {
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
+      port,
     },
     migrations: {
       directory: './database/migrations',

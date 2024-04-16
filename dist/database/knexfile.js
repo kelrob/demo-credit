@@ -7,6 +7,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 // Determine the current environment
 const environment = process.env.NODE_ENV || 'development';
+const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
 // Define the configurations for each environment
 const configurations = {
     development: {
@@ -16,6 +17,7 @@ const configurations = {
             database: process.env.DB_NAME,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
+            port,
         },
         migrations: {
             directory: './database/migrations',

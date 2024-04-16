@@ -52,6 +52,7 @@ class AuthService {
                 };
             }
             catch (error) {
+                console.log({ error });
                 return (0, exceptions_1.errorHandler)(error);
             }
         });
