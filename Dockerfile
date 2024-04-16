@@ -17,4 +17,4 @@ COPY dist ./dist
 EXPOSE 3000
 
 # Command to run the app
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npm run start && npx knex migrate:latest"]
