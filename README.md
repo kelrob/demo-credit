@@ -60,9 +60,13 @@ machine.
 The app is running on
 https://robert-ebafua-lendsqr-be-test.up.railway.app/
 
-## Documentation
+## API Documentation
 
 You can view the documentation via https://documenter.getpostman.com/view/26868191/2sA2xnwpYv
+
+## Technical Documentation
+
+https://flat-exhaust-cf5.notion.site/Demo-Credit-Technical-Documentation-9e3a0efe332c4c66a8fe8b733be90107
 
 ## ERDIAGRAM
 
