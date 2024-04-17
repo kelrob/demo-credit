@@ -66,5 +66,6 @@ You can view the documentation via https://documenter.getpostman.com/view/268681
 
 ## ERDIAGRAM
 
-![](C:\Users\rober\Downloads\demo-credit-er.png)
+![demo-credit-er](https://github.com/kelrob/demo-credit/assets/11693108/4521b8ca-627b-4278-97df-b763a22b9db2)
+
 
